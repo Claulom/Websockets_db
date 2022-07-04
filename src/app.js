@@ -1,50 +1,39 @@
 const express = require('express')
-
+const http = require('http')
 const {Server} = require('socket.io')
 
 const productRouter = require('./routes/products')
-const Archivos = require('./container')
-const options = require('../database')
-const product = new Archivos(options)
+const sqlite = require('./containerMsg')
+const { newMessage } = require('./containerMsg')
 
 const app = express();
+const httpServer = http.createServer( app );
+const io = new Server(httpServer)
 
-app.use('/public', express.static(__dirname + '/public'))
-
-app.set('views','./views');
-app.set('view engine', 'ejs');
+const PORT = process.env.PORT || 8080;
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
+app.use(express.static('./public'))
 
-const PORT = 8080;
-const server = app.listen(PORT, ()=>{
-    console.log(`Listening in PORT ${PORT}`)
+app.set('view engine', 'ejs');
+app.set('views',__dirname+'/views');
+
+io.on('connection', socket => {
+    console.log('Usuario conectado, ID: ' + socket.id);
+    sqlite.getAll().then(messages =>{
+        socket.emit('messages', messages)
+    })
+    socket.on('newMessage', (newMessage)=>{
+        sqlite.newMessage(newMessage)
+        .then(sqlite.getAll()
+        .then(messages => io.sockets.emit('messages', messages)))
+    })
 })
-
-
 
 app.use('/', productRouter)
 
-app.use('/', (req, res)=>{
-    res.render( 'index', {product: product.data} )
+const server = httpServer.listen(PORT, ()=>{
+    console.log(`Server on PORT: ${PORT}`)
 })
-const io = new Server(server)
+server.on('error', err => console.log('Error en el server: ' + err) )
 
-io.on('connection', socket => {
-    socket.on('add', data => {
-        product.push(data)
-        io.sockets.emit('show', product)
-    })
-
-    io.on('chat-in', data => {
-        const dateString = new Date().toLocaleString()
-        const dataOut = {
-            messages: data.messages,
-            username: data.username,
-            date: dateString
-        }
-        messages.push(data)
-
-        io.sockets.emit('chat-out', dataOut)
-    })
-})

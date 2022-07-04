@@ -1,61 +1,61 @@
-
-const options = require('./database')
-
-/* const knex = require('knex')(options) */
+const options = require('./db/database')
+const knex = require('knex')(options)
 
 class Archivos {
     constructor(options) {
-       this.knex = require('knex')(options)
+       this.options = options
 
     }
-      async ifCreateTable(){
-          const table = await this.knex.schema.hasTable('productos')
+       ifCreateTable(){
+          const table =  knex.schema.hasTable('productos')
           if(!table){
-              await this.createTable()
+               this.createTable()
           }else{
               console.log('tabla ya esta creada')
           }
       }
-      async createTable(){
-          return this.knex.schema.createTable('productos', (table)=>{
+       createTable(){
+          knex.schema.createTable('productos', (table)=>{
             table.increments('id')
             table.string('title')
             table.integer('price')
             table.string('thumbnail')
-            table.string('description')
-            table.integer('code')
-            table.integer('stock')
           })
       }
 
-      async getAll() {
-        const data = await this.knex.from('productos').select('*')
-            return data
+       getAll() {
+        return knex.from(this.options.connection.table).select('*')
+        .then(rows => rows)
+        .catch(err => console.log (err))
       
       }
       
-      async save(data) {
-        await this.knex('productos').insert(data)
-      
+       save(data) {
+        return this.knex(this.options.connection.table).insert(data)
+        .then(()=> 'Producto guardado')
+        .catch(err => console.log(err))
       }
       
-      async getById(id) {
-       await this.knex('productos').select([id]).then(rows => {
-            for (const row of rows) {
-                console.log(`${row['id']} `)
-            }
-            console.log(rows)
-        })
+       getById(id) {
+     return knex.from(this.options.connection.table).select('*').where('id', '=', id)
+       .then(rows => rows)
             .catch(err => console.log(err))
-            .finally(() => knex.destroy())
+            
       }
       
-      async deleteById() {
-        await knex('productos').where('id').del()
+       deleteById(id) {
+         return knex.from(this.options.connection.table).where('id', '=', id).del()
             .then(() => console.log('data deleted'))
             .catch(err => console.log(err))
-            .finally(() => knex.destroy())
+           
       } 
+      updateProd(edit, id){
+          return knex.from(this.options.connection.table)
+          .where('id', '=', id)
+          .update(edit)
+          .then(() => 'Producto modificado')
+          .catch(err => console.log(err))
+      }
 }
-
-    module.exports = Archivos
+const dbProd = new Archivos(options)
+    module.exports = dbProd;

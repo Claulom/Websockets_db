@@ -2,7 +2,7 @@
 <body>
     <%- include( 'templates/navbar' ) %>
 
-    <form action="/" method="POST" style="width: 70%;" class="m-auto mt-5">
+    <form id="form" action="/products" method="POST" style="width: 70%;" class="m-auto mt-5">
         <div class="mb-3">
             <label for="title" class="form-label">Nombre del producto</label>
             <input type="text" class="form-control" id="title" name="title" required>
@@ -19,59 +19,17 @@
         <button id="load" type="submit" class="btn btn-success m-auto mt-5">Guardar</button>
     </form>
 
-    <div id="products">
-        <% if(product.lenght == 0){ %>
-            <div class="alert alert-warning m-auto" style="width: 25%;" role="alert">
-                No se encontraron productos.
-            </div>
-        <% } else { %>
-            <table class="table table-light m-auto mt-5" style="width: 70%;">
-                <thead>
-                    <tr>
-                        <th scope="col">Título</th>
-                        <th scope="col">Precio</th>
-                        <th scope="col">Imagen</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% product.forEach( productos => { %>
-                        <tr scope="row">
-                            <td><%= productos.title %></td>
-                            <td>$<%= productos.price %></td>
-                            <td><img src="<%= productos.thumbnail %>" alt="img" style="width: 80px; height: 80px;"></td>
-                        </tr>
-                    <% }); %>
-                </tbody>
-            </table>
-        <%} %>
-
-    </div>
-
-    <div id="chat"></div>
-
-    <div>
-        <form>
-            <input id="msn" name="msn">
-            <button id="send">Enviar</button>
-        </form>
-    </div>
+    <% if ( message != ''){ %>
+        <div class="alert alert-success m-auto" style="width: 25%;" role="alert">
+            <%= message %>
+        </div>
+        <% } %>
     
-    <div>
-        <% messages.forEach( data => { %>
-            <p>
-                <b style="color: blue;">
-                    <%= data.username%>
-                </b>
-                [<%= data.date%>] 
-                <%= data.msn%>
-                </p>
-        <% }) %>
-    </div> 
+        <%- include( 'chat' ) %>
 
     
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js" integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-kjU+l4N0Yf4ZOJErLsIcvOU2qSb74wXpOhqTvwVx3OElZRweTnQ6d31fXEoRD1Jy" crossorigin="anonymous"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="index.js"></script>
+
 </body>
 </html>
